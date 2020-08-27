@@ -27,7 +27,6 @@ createTableElements = (allV,IfromV) -> (
 --
                        allGB := {};
                        allMB := {};
-                       --allLT := {};
                        staircase := {};
                        GB := {};
                        MB := {};
@@ -39,10 +38,29 @@ createTableElements = (allV,IfromV) -> (
                                GB = gfan I;
                                allGB = append(allGB, GB);
                                LT = gfanLeadingTerms(GB, "m" => true); --computes the LTs for each set, returning a set of sets
-                               --allLT = append(allLT, LT);
                                MB = createMBs(LT, #LT);
                                allMB = append(allMB, MB);)
                        ) return (allGB, allMB););
+
+-- findMaxVstrLen converts each set V to a string and find the "max" V by the number of characters contained in its string representation
+
+findMaxVstrLen = allV -> (
+--                  
+                 maxLen := 0; Vlen := 0;
+--
+                 (for i from 0 to #allV when i < #allV
+                    do (Vlen = #(toString allV#i);
+                        if Vlen > maxLen then maxLen = Vlen;));
+                 return maxLen;);
+
+-- createRepearStr creates a string of n char
+
+createRepeatStr = (char,n) -> (
+--
+                  str := "";
+                  (for i from 0 to n when i < n
+                    do (str = str | char;));
+                  return str;);
 
 -- displayTable prints/(pipes to file) elements from getTableElements in a table format
 
@@ -51,16 +69,17 @@ optionals = {toFile => 0, fileName => "table.txt"};
 displayTable = optionals >> o -> (allV,IfromV) -> (
 --              
                TableNet := "";
-               Vnumber := "1.";
+               maxVlen := findMaxVstrLen allV;
+               colVMB := (createRepeatStr(" ", 10)) | "V" | (createRepeatStr(" ", (maxVlen + 2))) | "MBs";
+               colLT := "LTs";
+               colGB := "GBs";
                (allGB, allMB) := createTableElements(allV,IfromV);
-               f := 0;
+               fileDescriptor := 0;
 --
                (for i from 0 to #allV when i < #allV
                      do (currentV := allV#i;
-                         PtsStr := toString currentV#0;
---
-                         (for j from 1 to #currentV when j < #currentV
-                            do (PtsStr = PtsStr || toString currentV#j;));
+                         currentVstr := toString currentV;
+                         PtsStr := currentVstr | (createRepeatStr(" ", (maxVlen - #currentVstr)));
 --
                          currentMBs := allMB#i;
                          MBsStr := toString currentMBs#0;
@@ -78,21 +97,25 @@ displayTable = optionals >> o -> (allV,IfromV) -> (
                          LTsStr := separatedStrs#0 | "}";
                          GBsStr := separatedStrs#1;
 --
-                         (for m from 1 to #currentGBs when m < #currentGBs
-                             do (markedGBstr = toString currentGBs#m;
+                         (for l from 1 to #currentGBs when l < #currentGBs
+                             do (markedGBstr = toString currentGBs#l;
                                  strToSeparate = substring(21,(#markedGBstr - 22), markedGBstr);
                                  separatedStrs = separate("},", strToSeparate);
                                  LTsStr = LTsStr || (separatedStrs#0 | "}");
                                  GBsStr = GBsStr || separatedStrs#1;));
 --
-                         Vnumber = (toString (i+1)) | ".    ";
-                         TableNet = TableNet || "\n" || Vnumber | toString (#currentMBs) | "   " | PtsStr | "   " | MBsStr | "   " | GBsStr;) 
-                         );(if o.toFile == 1 then        -- That ');(' semicolon matters :/
-                              (f = openOut o.fileName;
-                               f << TableNet;
-                               close f;)
+                         colVMB = colVMB || "\n" || ((toString (i+1)) | ".    " | toString (#currentMBs) | "   " | PtsStr | "   " | MBsStr);
+                         colLT = colLT || "\n" || LTsStr;
+                         colGB = colGB || "\n" || GBsStr;)
+                         ); TableNet = colVMB | "   " | colLT | "   " | colGB; -- first ';' on line must be there or 'null SPACE null' error
+                         (if o.toFile == 1 then
+                              (fileDescriptor = openOut o.fileName;
+                               fileDescriptor << TableNet;
+                               close fileDescriptor;)
                             else print TableNet;))
 
 -- How to retrieve and remove files:
 -- get "table.txt"
 -- remove "table.txt"
+
+-- TableNet = TableNet || "\n" || Vnumber | toString (#currentMBs) | "   " | PtsStr | "   " | MBsStr | "   " | GBsStr;)
