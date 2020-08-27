@@ -1,5 +1,15 @@
 -- Code to yield a print out similar to Anyu's DoEMS website for any prime power p and any dimension n
 
+-- IfromVn2 computes I(V) from V where polyRing is a ring you can pass in, where n is the dimension of the points in V
+
+optionals = {polyRing => R};
+
+IfromVn2 = optionals >> o -> V -> (I := R;
+        (for i from 0 to #V when i < #V 
+            do (ptIdeal = ideal(x_1 - V#i#0, x_2 - V#i#1);
+                 I = intersect(ptIdeal,I);));
+         return I;);
+
 -- createMBs computes model bases from Gröbner bases for a given V
 -- lenLT corresponds to the number Gröbner bases for a given V
 -- LT is a list of leading terms for each of the Gröbner bases corresponding to V
@@ -118,4 +128,6 @@ displayTable = optionals >> o -> (allV,IfromV) -> (
 -- get "table.txt"
 -- remove "table.txt"
 
--- TableNet = TableNet || "\n" || Vnumber | toString (#currentMBs) | "   " | PtsStr | "   " | MBsStr | "   " | GBsStr;)
+-- Below is a test set for R = ZZ/3[x_1,x_2]; 
+
+-- allV = {{{0, 0}},{{0, 0}, {0, 1}},{{0, 0}, {1, 0}},{{0, 0}, {1, 1}},{{0, 0}, {0, 1}, {0, 2}},{{0, 0}, {0, 1}, {1, 0}},{{0, 0}, {1, 0}, {2, 0}},{{0, 0}, {0, 1}, {1, 2}},{{0, 0}, {1, 0}, {2, 1}},{{0, 0}, {1, 1}, {2, 2}},{{0, 0}, {0, 1}, {0, 2}, {1, 0}},{{0, 0}, {0, 1}, {1, 0}, {1, 1}},{{0, 0}, {0, 1}, {1, 0}, {2, 0}},{{0, 0}, {0, 1}, {1, 0}, {1, 2}},{{0, 0}, {0, 1}, {1, 0}, {2, 1}},{{0, 0}, {0, 1}, {1, 0}, {2, 2}},{{0, 0}, {0, 2}, {1, 1}, {2, 1}}};
