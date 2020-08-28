@@ -1,5 +1,3 @@
--- load "IfromVn2.m2"
-
 -- Computes all "relevant" V in F_p, such that |V| <= p and V can be traced from the origin (0,0)
 
 optionals = {numPts => p};
@@ -9,30 +7,23 @@ getVRepsN2 = optionals >> o -> p -> (if isPrime p then "" else print "p, the fir
                                 V := {};
                                 return V;));
 
--- IfromVn2 computes I(V) from V where polyRing is a ring you can pass in, where n is the dimension of the points in V
+-- IfromV computes I(V) from V where polyRing is a ring you can pass in
+-- a global variable idealName is created from the variety V where idealName is a string
+-- the code used to create idealName is written in the file "idealName.m2" where idealName is an argument to the function
 
-optionals = {polyRing => R};
-
-IfromVn2 = optionals >> o -> V -> (I := R;
-        (for i from 0 to #V when i < #V 
-            do (ptIdeal = ideal(x_1 - V#i#0, x_2 - V#i#1);
-                 I = intersect(ptIdeal,I);));
-         return I;);
-
-createPtSymbol = n -> (symbolStr := "x1 - V#i";
+IfromV = (V,idealName) -> (
 --
-                       (for i from 0 to n when i < n 
-                            do (symbolStr = symbolStr | ", x" | toString i | " - V#i";)
-                       )return "" | symbolStr;);
-
-IfromV = optionals >> o -> (V,n) -> (I := R;
-        symbolStr := createPtSymbol n;
+                symbolStr := "x_1 - tempV#i";
+                n := dim R; -- the dimension of the points in tempV
+                file := idealName | ".m2";
 --
-        (for i from 0 to #V when i < #V 
-            do (I = intersect(ptIdeal,I);));
-         return I;)
-
--- dim R will get you n
-
--- write the point in V to the file above the line "ptIdeal = ideal(symbolStr);"
--- this will create the global symbol "ptIdeal" which you can reference in "I = intersect(ptIdeal,I);"
+                file << idealName << " = R;" << endl;
+                file << "tempV = " << (toString V) << ";" << endl;
+                file << "(for i from 0 to #tempV when i < #tempV" << endl << "    d" << "o"; -- do in string does not compile :/
+--
+                (for i from 1 to n when i < n 
+                     do (symbolStr = symbolStr | ", x_" | toString i | " - tempV#i";));
+--
+                file << "(idealName = ideal(" << symbolStr << ");" << endl;
+                file << idealName << " = intersect(idealName," << idealName << ");));" << close;
+                load file;);
