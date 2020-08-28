@@ -1,14 +1,26 @@
 -- Code to yield a print out similar to Anyu's DoEMS website for any prime power p and any dimension n
 
--- IfromVn2 computes I(V) from V where polyRing is a ring you can pass in, where n is the dimension of the points in V
 
-optionals = {polyRing => R};
+-- IfromV computes I(V) from V assuming R is defined as the polynomial ring your ideal is a subset of 
+-- V is an affine variety and idealName is a string
+-- in the form of a string, code is written to the file "idealName.m2" to create the global variable idealName
 
-IfromVn2 = optionals >> o -> V -> (I := R;
-        (for i from 0 to #V when i < #V 
-            do (ptIdeal = ideal(x_1 - V#i#0, x_2 - V#i#1);
-                 I = intersect(ptIdeal,I);));
-         return I;);
+IfromV = (V,idealName) -> (
+--
+                symbolStr := "x_1 - tempV#i#0";
+                n := dim R; -- the dimension of the points in tempV
+                file := idealName | ".m2";
+--
+                file << idealName << " = R;" << endl;
+                file << "tempV = " << (toString V) << ";" << endl;
+                file << "(for i from 0 to #tempV when i < #tempV" << endl << "    d" << "o"; -- do in string does not compile :/
+--
+                (for i from 1 to n when i < n 
+                     do (symbolStr = symbolStr | ", x_" | toString (i+1) | " - tempV#i#" | toString i;));
+--
+                file << "(idealName = ideal(" << symbolStr << ");" << endl;
+                file << idealName << " = intersect(idealName," << idealName << ");));" << close;
+                load file;);
 
 -- createMBs computes model bases from Gröbner bases for a given V
 -- lenLT corresponds to the number Gröbner bases for a given V
@@ -33,24 +45,24 @@ createMBs = (LT,lenLT) -> (
 
 -- call like this: "(allGB, allMB) = createTableElements allV"
 
-createTableElements = (allV,IfromV) -> (
+createTableElements = allV -> (
 --
-                       allGB := {};
-                       allMB := {};
-                       staircase := {};
-                       GB := {};
-                       MB := {};
-                       LT := {};
-                       lenAllV := #allV;
+                      allGB := {};
+                      allMB := {};
+                      staircase := {};
+                      GB := {};
+                      MB := {};
+                      LT := {};
+                      lenAllV := #allV;
 --                               
-                       (for i from 0 to lenAllV when i < lenAllV
-                           do (I = IfromV allV#i;
-                               GB = gfan I;
-                               allGB = append(allGB, GB);
-                               LT = gfanLeadingTerms(GB, "m" => true); --computes the LTs for each set, returning a set of sets
-                               MB = createMBs(LT, #LT);
-                               allMB = append(allMB, MB);)
-                       ) return (allGB, allMB););
+                      (for i from 0 to lenAllV when i < lenAllV
+                          do (IfromV(allV#i,"I");
+                              GB = gfan I;
+                              allGB = append(allGB, GB);
+                              LT = gfanLeadingTerms(GB, "m" => true); --computes the LTs for each set, returning a set of sets
+                              MB = createMBs(LT, #LT);
+                              allMB = append(allMB, MB);)
+                      ) return (allGB, allMB););
 
 -- findMaxVstrLen converts each set V to a string and find the "max" V by the number of characters contained in its string representation
 
@@ -76,14 +88,14 @@ createRepeatStr = (char,n) -> (
 
 optionals = {toFile => 0, fileName => "table.txt"};
 
-displayTable = optionals >> o -> (allV,IfromV) -> (
+displayTable = optionals >> o -> allV -> (
 --              
                TableNet := "";
                maxVlen := findMaxVstrLen allV;
                colVMB := (createRepeatStr(" ", 10)) | "V" | (createRepeatStr(" ", (maxVlen + 2))) | "MBs";
                colLT := "LTs";
                colGB := "GBs";
-               (allGB, allMB) := createTableElements(allV,IfromV);
+               (allGB, allMB) := createTableElements allV;
                fileDescriptor := 0;
 --
                (for i from 0 to #allV when i < #allV
@@ -128,6 +140,30 @@ displayTable = optionals >> o -> (allV,IfromV) -> (
 -- get "table.txt"
 -- remove "table.txt"
 
--- Below is a test set for R = ZZ/3[x_1,x_2]; 
+-- Below is a test set for R = ZZ/3[x_1,x_2] where allV contains ALMOST all distinct varieties of ZZ/3^2 with respect to linear shifts and complement rules on the size of V  
+
+-- To run the test, first start M2 in the directory containing this file
+
+-- Then copy and paste the lines below one at a time without the "-- " at the beginning of each line 
+
+-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+
+-- loadPackage "gfanInterface";
+
+-- load "AnyuTable.m2";
+
+-- R = ZZ/3[x_1,x_2];
 
 -- allV = {{{0, 0}},{{0, 0}, {0, 1}},{{0, 0}, {1, 0}},{{0, 0}, {1, 1}},{{0, 0}, {0, 1}, {0, 2}},{{0, 0}, {0, 1}, {1, 0}},{{0, 0}, {1, 0}, {2, 0}},{{0, 0}, {0, 1}, {1, 2}},{{0, 0}, {1, 0}, {2, 1}},{{0, 0}, {1, 1}, {2, 2}},{{0, 0}, {0, 1}, {0, 2}, {1, 0}},{{0, 0}, {0, 1}, {1, 0}, {1, 1}},{{0, 0}, {0, 1}, {1, 0}, {2, 0}},{{0, 0}, {0, 1}, {1, 0}, {1, 2}},{{0, 0}, {0, 1}, {1, 0}, {2, 1}},{{0, 0}, {0, 1}, {1, 0}, {2, 2}},{{0, 0}, {0, 2}, {1, 1}, {2, 1}}};
+
+-- displayTable(allV);
+
+-- OR 
+
+-- displayTable(allV, toFile => 1, fileName => "yourChoice.txt");
+
+-- get "yourChoice.txt" 
+
+-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+
+-- "yourChoice.txt" can be found in the directory you started M2 in
