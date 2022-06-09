@@ -2,25 +2,29 @@
 
 
 -- IfromV computes I(V) from V assuming R is defined as the polynomial ring your ideal is a subset of 
+-- Also this function assumes your variables in R are defined in the form "x_i" when you declare R := k[x_1..x_5];
 -- V is an affine variety and idealName is a string
 -- in the form of a string, code is written to the file "idealName.m2" to create the global variable idealName
 
 IfromV = (V,idealName) -> (
 --
-                symbolStr := "x_1 - tempV#i#0";
-                n := dim R; -- the dimension of the points in tempV
-                file := idealName | ".m2";
---
-                file << idealName << " = R;" << endl;
-                file << "tempV = " << (toString V) << ";" << endl;
-                file << "(for i from 0 to #tempV when i < #tempV" << endl << "    d" << "o"; -- do in string does not compile :/
+                symbolStr  := "x_1 - tempV#i#0";  -- string needed to create the ideal when calling intersect
+                initialStr := "x_1";              -- string needed to create the ideal prior to calling intersect
+                n          := dim R;              -- the dimension of the points in tempV
+                file       := idealName | ".m2";
 --
                 (for i from 1 to n when i < n 
-                     do (symbolStr = symbolStr | ", x_" | toString (i+1) | " - tempV#i#" | toString i;));
+                     do (initialStr = initialStr | ", x_" | toString(i+1);));
+                file << idealName << " = ideal(" << initialStr << ");" << endl; -- for the initial intersection performed below
+                file << "tempV = " << (toString V) << ";" << endl;
+                file << "(for i from 0 to #tempV when i < #tempV" << endl << "    d" << "o ("; -- do in string does not compile :/
 --
-                file << "(idealName = ideal(" << symbolStr << ");" << endl;
-                file << idealName << " = intersect(idealName," << idealName << ");));" << close;
+                (for i from 1 to n when i < n 
+                     do (symbolStr = symbolStr | ", x_" | toString(i+1) | " - tempV#i#" | toString i;));
+--
+                file << idealName << " = intersect(" << idealName << ", ideal(" << symbolStr << "));));" << close;
                 load file;);
+--              removeFile file;);
 
 -- createMBs computes model bases from Gröbner bases for a given V
 -- lenLT corresponds to the number Gröbner bases for a given V
@@ -41,7 +45,7 @@ createMBs = (LT,lenLT) -> (
              ) return allMB;);
 
 -- createTableElements generates ideals from a collection of sets V and their corresponding Gröbner and Model Bases
--- IfromV is the function used to create I(V) this currently varies based on n, i.e. IfromVn2 and IfromVn3
+-- IfromV is the function used to create I(V)
 
 -- call like this: "(allGB, allMB) = createTableElements allV"
 
@@ -49,6 +53,7 @@ createTableElements = allV -> (
 --
                       allGB := {};
                       allMB := {};
+                      allLT := {};
                       staircase := {};
                       GB := {};
                       MB := {};
@@ -60,9 +65,10 @@ createTableElements = allV -> (
                               GB = gfan I;
                               allGB = append(allGB, GB);
                               LT = gfanLeadingTerms(GB, "m" => true); --computes the LTs for each set, returning a set of sets
+                              allLT = append(allLT, LT);
                               MB = createMBs(LT, #LT);
                               allMB = append(allMB, MB);)
-                      ) return (allGB, allMB););
+                      ) return (allGB, allMB, allLT););
 
 -- findMaxVstrLen converts each set V to a string and find the "max" V by the number of characters contained in its string representation
 
@@ -95,7 +101,7 @@ displayTable = optionals >> o -> allV -> (
                colVMB := (createRepeatStr(" ", 10)) | "V" | (createRepeatStr(" ", (maxVlen + 2))) | "MBs";
                colLT := "LTs";
                colGB := "GBs";
-               (allGB, allMB) := createTableElements allV;
+               (allGB, allMB, allLT) := createTableElements allV;
                fileDescriptor := 0;
 --
                (for i from 0 to #allV when i < #allV
@@ -106,30 +112,21 @@ displayTable = optionals >> o -> allV -> (
                          currentMBs := allMB#i;
                          MBsStr := toString currentMBs#0;
 --
-                         (for k from 1 to #currentMBs when k < #currentMBs
-                            do (MBsStr = MBsStr || toString currentMBs#k;));
---
                          currentGBs := allGB#i;
-                         markedGBstr := toString currentGBs#0;
---                         
-                         strToSeparate := substring(21, (#markedGBstr - 22), markedGBstr); -- removes 'MarkedPolynomialList{' and '}' at end
--- 
-                         separatedStrs := separate("},", strToSeparate); -- separates strToSeparate into LTs and GB
---                         
-                         LTsStr := separatedStrs#0 | "}";
-                         GBsStr := separatedStrs#1;
+                         GBsStr := toString currentGBs#0;
+
+                         currentLTs := allLT#i;
+                         LTsStr := toString currentLTs#0;   
 --
-                         (for l from 1 to #currentGBs when l < #currentGBs
-                             do (markedGBstr = toString currentGBs#l;
-                                 strToSeparate = substring(21,(#markedGBstr - 22), markedGBstr);
-                                 separatedStrs = separate("},", strToSeparate);
-                                 LTsStr = LTsStr || (separatedStrs#0 | "}");
-                                 GBsStr = GBsStr || separatedStrs#1;));
+                         (for k from 1 to #currentGBs when k < #currentGBs
+                             do (MBsStr = MBsStr || toString currentMBs#k;
+                                 GBsStr = GBsStr || toString currentGBs#k;
+                                 LTsStr = LTsStr || toString currentLTs#k;));
 --
                          colVMB = colVMB || "\n" || ((toString (i+1)) | ".    " | toString (#currentMBs) | "   " | PtsStr | "   " | MBsStr);
                          colLT = colLT || "\n" || LTsStr;
                          colGB = colGB || "\n" || GBsStr;)
-                         ); TableNet = colVMB | "   " | colLT | "   " | colGB; -- first ';' on line must be there or 'null SPACE null' error
+                         ); TableNet = colVMB | "   " | colLT | "   " | colGB; -- first ';' on line 141 must be there or 'null SPACE null' error
                          (if o.toFile == 1 then
                               (fileDescriptor = openOut o.fileName;
                                fileDescriptor << TableNet;
