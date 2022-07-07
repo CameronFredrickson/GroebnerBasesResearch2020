@@ -1,4 +1,5 @@
 -- Code to yield a print out similar to Anyu's DoEMS website for any prime power p and any dimension n
+-- This table also checks whether or not a variety is diagonal-free and indicates whether or not I(V) has a UGB
 
 
 -- createRepearStr creates a string of n char
@@ -62,11 +63,10 @@ createAllVs = optionals >> o -> (n , q) -> (
 
 
 -- HammingDistance computes the Hamming Distance between the points v and w i.e. returns the number of differing coordinates between the 2 points
--- assuming R is defined as the polynomial ring
+-- assuming R is defined as the polynomial ring, call like HammingDistance(v, w, dim R);
 
-HammingDistance = (v, w) -> (
+HammingDistance = (v, w, n) -> (
 --
-                n := dim R;
                 Hdist := 0;
 --
                 if #v != #w then return "Error: The arguments v and w need to be lists of the same length.\n";
@@ -75,16 +75,17 @@ HammingDistance = (v, w) -> (
                 ) return Hdist;);
 
 
--- DiagonalFreeCheck uses Hamming Distance to check if a variety is diagonal-free
+-- DiagonalFreeCheck uses Hamming Distance to check if a variety is diagonal-free where n is the dimension of the points in the variety
 
-DiagonalFreeCheck = (V) -> (
+DiagonalFreeCheck = (V, n) -> (
 --
-                n := #V;
+                m := #V;
+                diag := false;
 --
-                (for i from 0 to n when i < n
-                  do (for j from (i+1) to n when j < n
-                        do (if HammingDistance(V#i, V#j) <= 1 then break;);
-                      return "N";);
+                (for i from 0 to n when i < m
+                  do (for j from 0 to n when j < m
+                        do (if i != j then (if HammingDistance(V#i, V#j, n) <= 1 then (diag = false; break;) else diag = true));
+                        if diag then return "N";);
                 ) return "Y";);
 
 
