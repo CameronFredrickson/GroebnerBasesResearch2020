@@ -37,23 +37,27 @@ createPoints = (n, q) -> (
 
 -- createAllVs creates all affine varieties up to complement, meaning for a finite vector space over a finite field of characteristic q and dimension n
 -- this function computes all V shifted to the origin, meaning each V contains 0, such that |V| <= q^n/2 
--- assuming R is defined as the polynomial ring
+-- assuming R is defined as the polynomial ring, call as "createAllVs(dim R, char R)"
 -- m  is an optional parameter to force all computed Vs to have m points
 -- Note 3 <= |V| because a general formula is known for the number of RGBs of I(V) where V has exactly 2 points in n dimensions
 
 optionals = {m => 0};
 
-createAllVs = optionals >> o -> (
+createAllVs = optionals >> o -> (n , q) -> (
 --
-                n := dim R;
-                q := char R;
                 allVs := {};
 --
                 createPoints(n, q);
-                (if n == 2 and q == 2 then return subsets(allPoints, 2);)
 --
-                (for i from 2 to q^n/2 when i < q^n/2
-                  do (allVs = join(allVs, subsets(allPoints, i));)
+                if n == 2 and q == 2 then return subsets(allPoints, 2);
+--
+                allPoints = delete(toList (n:0), allPoints);
+--
+                if o.m > 0 then return apply(subsets(allPoints, o.m - 1), (L -> prepend(toList (n:0), L)));
+--
+                upperBound = floor(q^n/2);
+                (for i from 2 to upperBound when i < upperBound
+                  do (allVs = join(allVs, apply(subsets(allPoints, i), (L -> prepend(toList (n:0), L))));)
                 ) return allVs;);
 
 
