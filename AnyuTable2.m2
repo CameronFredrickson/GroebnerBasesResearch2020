@@ -1,18 +1,39 @@
 -- Code to yield a print out similar to Anyu's DoEMS website for any prime power p and any dimension n
 
--- createPoints creates all points in the finite vector space over a finite field of characteristic q and dimension n
+
+-- createRepearStr creates a string of n char
+
+createRepeatStr = (char,n) -> (
+--
+                  str := "";
+                  (for i from 0 to n when i < n
+                    do (str = str | char;));
+                  return str;);
+
+
+-- createPoints creates all points in the finite vector space over a finite field of characteristic q and dimension n by writing the necessary code to a file and then
+--              storing the result in the global variable allPoints
 
 createPoints = (n, q) -> (
 --              
-                origin := toList n:0;
-                allPoints := {origin};
+                file := "tmpCreatePointsCode.m2";
+                symbolStr := "{i0}";
 --
-                (for  i from 0 to n when i < n
-                  do (newPoint = (toList i:0) | {1} | (toList (n - 1 - i):0);
-                     (for j from 2 to q when j < q
-                         do (allPoints = append(allPoints, j*newPoint);)
-                )))      
-); 
+                file << "allPoints = ((n, q) -> (" << endl; -- storing all points created in the global variable allPoints
+                file << createRepeatStr(" ", 12) << "allPts := {};" << endl; -- storing all points created in the local variable allPts to be returned
+                file << "--" << endl << createRepeatStr(" ", 12) << "(";
+--                
+                (for i from 0 to n when i < n
+                    do (file << "fo" << "r i" << i << " from 0 to q when i" << i << " < q" << endl;
+                        file << createRepeatStr(" ", (12 + ((i + 1) * 4))) << "d" << "o (";););
+--
+                (for i from 1 to n when i < n
+                    do (symbolStr = symbolStr | " | " | "{i" | i | "}"));
+                file << "allPts = append(allPts, (" << symbolStr << ")));" << endl;
+                file << createRepeatStr(" ", 12) << createRepeatStr(")", n) << " return allPts;)) (" << n << ", " << q << ");" << close;
+                load file;);
+--              removeFile file;);
+
 
 -- createAllVs creates all affine varieties up to complement, meaning for a finite vector space over a finite field of characteristic q and dimension n
 -- this function computes all V shifted to the origin, meaning each V contains 0, such that |V| <= q^n/2 
@@ -28,16 +49,13 @@ createAllVs = optionals >> o -> (
                 q := char R;
                 allVs := {};
 --
-                (if n == 2 and q == 2 then return subsets(createPoints(n, q), 2);)
+                createPoints(n, q);
+                (if n == 2 and q == 2 then return subsets(allPoints, 2);)
 --
-                (for i from 0 to q^n/2 when i < q^n/2
-                  do (;)
+                (for i from 2 to q^n/2 when i < q^n/2
+                  do (allVs = join(allVs, subsets(allPoints, i));)
                 ) return allVs;);
 
--- IfromV computes I(V) from V assuming R is defined as the polynomial ring your ideal is a subset of 
--- Also this function assumes your variables in R are defined in the form "x_i" when you declare R := k[x_1..x_5];
--- V is an affine variety and idealName is a string
--- in the form of a string, code is written to the file "idealName.m2" to create the global variable idealName
 
 -- HammingDistance computes the Hamming Distance between the points v and w i.e. returns the number of differing coordinates between the 2 points
 -- assuming R is defined as the polynomial ring
@@ -52,6 +70,7 @@ HammingDistance = (v, w) -> (
                   do (if v#i != w#i then Hdist = Hdist + 1;)
                 ) return Hdist;);
 
+
 -- DiagonalFreeCheck uses Hamming Distance to check if a variety is diagonal-free
 
 DiagonalFreeCheck = (V) -> (
@@ -63,6 +82,7 @@ DiagonalFreeCheck = (V) -> (
                         do (if HammingDistance(V#i, V#j) <= 1 then break;);
                       return "N";);
                 ) return "Y";);
+
 
 IfromV = (V,idealName) -> (
 --
@@ -84,6 +104,7 @@ IfromV = (V,idealName) -> (
                 load file;);
 --              removeFile file;);
 
+
 -- createMBs computes model bases from Gröbner bases for a given V
 -- lenLT corresponds to the number Gröbner bases for a given V
 -- LT is a list of leading terms for each of the Gröbner bases corresponding to V
@@ -101,6 +122,7 @@ createMBs = (LT,lenLT) -> (
                       allMB = append(allMB, MB);
                       use R;)
              ) return allMB;);
+
 
 -- createTableElements generates ideals from a collection of sets V and their corresponding Gröbner and Model Bases
 -- IfromV is the function used to create I(V)
@@ -128,6 +150,7 @@ createTableElements = allV -> (
                               allMB = append(allMB, MB);)
                       ) return (allGB, allMB, allLT););
 
+
 -- findMaxVstrLen converts each set V to a string and find the "max" V by the number of characters contained in its string representation
 
 findMaxVstrLen = allV -> (
@@ -139,14 +162,6 @@ findMaxVstrLen = allV -> (
                         if Vlen > maxLen then maxLen = Vlen;));
                  return maxLen;);
 
--- createRepearStr creates a string of n char
-
-createRepeatStr = (char,n) -> (
---
-                  str := "";
-                  (for i from 0 to n when i < n
-                    do (str = str | char;));
-                  return str;);
 
 -- displayTable prints/(pipes to file) elements from getTableElements in a table format
 
@@ -181,7 +196,7 @@ displayTable = optionals >> o -> allV -> (
                                  GBsStr = GBsStr || toString currentGBs#k;
                                  LTsStr = LTsStr || toString currentLTs#k;));
 --
-                         colVMB = colVMB || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | toString (#currentMBs) | "   " | PtsStr | "   " | MBsStr);
+                         colVMB = colVMB || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | toString (#currentMBs) | "   " | PtsStr | "   " | MBsStr);                     -- log_10(i + 1) is to remove the number of spaces corresponding to the number of the digits of the row number
                          colLT = colLT || "\n" || LTsStr;
                          colGB = colGB || "\n" || GBsStr;)
                          ); TableNet = colVMB | "   " | colLT | "   " | colGB; -- first ';' on line 141 must be there or 'null SPACE null' error
@@ -190,6 +205,7 @@ displayTable = optionals >> o -> allV -> (
                                fileDescriptor << TableNet;
                                close fileDescriptor;)
                             else print TableNet;))
+
 
 -- How to retrieve and remove files:
 -- get "table.txt"
