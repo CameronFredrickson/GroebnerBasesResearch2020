@@ -1,5 +1,5 @@
--- Code to yield a print out similar to Anyu's DoEMS website for any prime power p and any dimension n
--- This table also checks whether or not a variety is diagonal-free and indicates whether or not I(V) has a UGB
+-- Code to create the LaTeX needed to create a visual representation of any 2D variety and label it as a variety that is diagonal-free w/o a UGB, 
+-- a linear shift of a staircase, or not a linear shift of a staircase but has a UGB
 
 
 -- createRepearStr creates a string of n char
@@ -89,6 +89,80 @@ DiagonalFreeCheck = (V, n) -> (
                 ) return "Y";);
 
 
+-- using hashtables StaircaseCheck2D determines whether or not the 2 dimensional affine variety V is a staircase or not
+
+-- StaircaseCheck2D = (V, n) -> (
+--
+--                 checkTable := new MutableHashTable;
+--                 maxKey1    := 0;
+--
+--                 (for m from 0 to #V when m < #V
+--                   do (for j from 0 to n when j < m
+--                         do (if i != j then (if HammingDistance(V#i, V#j, n) <= 1 then (diag = false; break;) else diag = true));
+--                         if diag then return "N";);
+--                 ) return true;);
+
+
+-- StaircaseCheck2D determines whether or not the 2 dimensional affine variety V is a staircase or not
+--                  starting with the point in V with the largest x value and then largest y value for points with that x value the function interates
+--                  through the points "underneath" it by subtracting 1 from the y value with each iteration and checking if this point is in V.
+
+StaircaseCheck2D = (V, n) -> (
+--
+                toCheck := rsort(V);
+                minY    := 0;
+                m       := 0;
+--
+                (while m < #toCheck
+                  do (currentPt := toCheck#m; 
+                      if currentPt#1 < minY then return false else minY = currentPt#1;
+--
+                      for j from 1 to currentPt#1 when j <= currentPt#1
+                        do (if toCheck#(m + 1) != currentPt - {0, j} then return false else m = m + 1;);
+                      m = m + 1;);
+                ); return true;);
+
+
+-- If V is a linear shift of a staircase LinearShift2D finds the unshifted verision of V
+
+LinearShift2D = (V, n) -> (
+--
+                shifted = {};
+);
+
+
+-- create2DLatexEntry returns the LaTeX to be copy pasted into a LaTeX file to label a variety as diagonal-free w/o a UGB, a linear shift of a staircase, 
+--                    or not a linear shift of a staircase but has a UGBand creates a Tikz picture of the variety
+
+-- create2DLatexEntry = (V, p, n, i, label) -> (
+--
+--                entry := "\begin{tabular}" | "{" | "c c @" | "{" | "\" | "hskip 0.75 cm" | "}" | " c " | "}" | "\n    " | i | ". & " | label | " & ";
+--
+--                (for j from 0 to n when j < n
+--                  do ());
+-- );
+
+
+-- creeate2DLatexFile writes the LaTeX to a file so that each variety in allVs has a visual representation and each variety is labeled as diagonal-free w/o a UGB, 
+--                    a linear shift of a staircase, or n`ot a linear shift of a staircase w/ a UGB. The .tex file will be titled "p(char R)m(value of m).tex" if m is nonzero
+--                    and no file name is given as an argument where m corresponds to the number of points in the varieties to be looked at if m is nonzero. 
+--                    If m is equal to zero and no file name is given the file will be titled "p(char R).tex" i.e. so if char R returns 5, the corresponding .tex file 
+--                    would be titled "p5.tex". The filter will allow the caller to only return the varieties with a specified property and the filter will be added to 
+--                    the end of the file name if no file name is given. If filter == 0 then the LaTeX will not be filtered. If filter == 1
+--                    then only the LaTeX corresponding to DF varieties w/o a UGB will be returned. If filter == 2 then only the LaTeX corresponding to varieties w/ UGBs
+--                    are not linear shifts of staircases will be returned. 
+
+optionals = {FileName => 0, m => 0, filter => 0};
+
+createAll2DLatexEntries = optionals >> o -> (V, p, n) -> (
+--
+                label := " ";
+--
+);
+
+
+
+
 IfromV = (V,idealName) -> (
 --
                 symbolStr  := "x_1 - tempV#i#0";  -- string needed to create the ideal when calling intersect
@@ -149,7 +223,7 @@ createTableElements = allV -> (
                           do (IfromV(allV#i,"I");
                               GB = gfan I;
                               allGB = append(allGB, GB);
-                              LT = gfanLeadingTerms(GB, "m" => true); --computes the LTs for each set, returning a set of sets
+                              LT = gfanLeadingTerms(GB, "m" => true); -- computes the LTs for each set, returning a set of sets
                               allLT = append(allLT, LT);
                               MB = createMBs(LT, #LT);
                               allMB = append(allMB, MB);)
