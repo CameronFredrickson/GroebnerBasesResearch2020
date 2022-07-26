@@ -2,6 +2,9 @@
 -- a linear shift of a staircase, or not a linear shift of a staircase but has a UGB
 
 
+loadPackage("gfanInterface", Reload => true);
+
+
 -- createRepearStr creates a string of n char
 
 createRepeatStr = (char,n) -> (
@@ -113,7 +116,6 @@ StaircaseCheck2D = (V, n) -> (
 -- string if true, and the unshifted verision of V if true
 
 LinearShift2D = (V, n, q) -> (
--- find a linear shift to send a nonzero point in V to 0 then use scan to apply the linear shift to all the points, next put the shifted variety into StaircaseCheck2D
                 shiftedV := {};
                 nonzero := delete(toList (n:0), V);
                 b       := {};
@@ -135,14 +137,22 @@ LinearShift2D = (V, n, q) -> (
 
 -- create2DLatexEntry returns the LaTeX to be copy pasted into a LaTeX file to label a variety as diagonal-free w/o a UGB, a linear shift of a staircase, 
 --                    or not a linear shift of a staircase but has a UGB and creates a Tikz picture of the variety
+--                    Note: /// allows "\" to be treated as is and not as an ecsape character
 
--- create2DLatexEntry = (V, p, n, i, label) -> (
+-- create2DLatexEntry = (V, p, n, i, label, SMexponents) -> (
 --
---                entry := "\begin{tabular}" | "{" | "c c @" | "{" | "\" | "hskip 0.75 cm" | "}" | " c " | "}" | "\n    " | i | ". & " | label | " & ";
+                entry   := ///\begin{tabular}{ c c @ {\hskip 0.75 cm} c }/// | "\n\t" | (toString i) | ". & " | (toString label) | " & ";
+                Vcolor  := if i % 2 == 1 then "tetradicBlue" else "tetradicRed";
+                SMcolor := if i % 2 == 1 then "tetradicOrange" else "green";
 --
---                (for j from 0 to n when j < n
---                  do ());
--- );
+                (for m from 0 to #V when m < #V
+                  do ());
+                entry = entry | "\n" | ///\end{tabular} \hspace{0.25cm} \begin{tikzpicture}[baseline=(current bounding box.center), roundnode/.style={circle, draw=/// | Vcolor | "!60, fill=" | Vcolor | "!5, very thick, minimum size=5mm}, scale=1.2]" | "\n % Lines \n" | ///\draw (0,0) grid (/// | (toString p) | ", " | (toString p) | ");\n\n % Nodes\n";
+--
+                (for m from 0 to #V when m < #V
+                  do ());
+--
+                return entry;);
 
 
 -- create2DLatexFile writes the LaTeX to a file so that each variety in allVs has a visual representation and each variety is labeled as diagonal-free w/o a UGB, 
@@ -158,14 +168,64 @@ optionals = {FileName => 0, m => 0, filter => 0};
 
 create2DLatexFile = optionals >> o -> (allVs, p, n) -> (
 --
-                label := "   ";
-                entry := "";
+                label       := "   ";
+                entry       := "";
 --
                 if FileName == 0 then (FileName = "p" | p; 
                                        if m > 0 then FileName = FileName | "m" | m;
                                        if filter == 0 then FileName = FileName | ".tex"
                                        else if filter == 1 then FileName = FileName | "-DFnotUGB.tex"
                                        else if filter == 2 then FileName = FileName | "-UGBnotStaircase.tex";);
+--
+                fileString  := ///\documentclass[12 pt]{article} -- /// allows "\" to be treated as is and not as an ecsape character  
+  
+                          \usepackage[utf8]{inputenc}
+                          \usepackage{amsfonts,amssymb,amsmath}
+                          \usepackage{graphicx,tikz}
+                          \usepackage{adjustbox}
+                          \usepackage{geometry}
+                              \geometry{
+                                  a4paper,
+                                  total={170mm,257mm},
+                                  left=20mm,
+                                  top=15mm,
+                              }
+                          \usepackage{tabularx}
+                          \usepackage{xcolor}
+                          \definecolor{tetradicRed}{RGB}{255, 102, 102}
+                          \definecolor{tetradicOrange}{RGB}{255, 179, 102}
+                          \definecolor{tetradicBlue}{RGB}{102, 102, 255}
+                          \newcommand{\DF}{{\color{red}\(\mathbb{DF}\)}}
+                          \newcommand{\St}{\fcolorbox{blue}{white}{{\color{blue}\S}}}
+  
+                          \title{Varieties in \(\mathbb{F}^/// | (toString n) | "_" | (toString p) | ///\)}
+                          \date{}
+                          \author{}
+  
+  
+                          \begin{document}
+  
+                          \maketitle
+  
+                          \noindent
+  
+                          \vspace{-10mm}
+  
+                          \begin{tabular}{ l c l }
+                               UGB & - & unique reduced Gr{\"o}bner Basis \\
+                                DF & - & diagonal-free variety \\
+                               \DF & - & diagonal-free variety yielding more than one GB \\
+                                 S & - & linear shift of a staircase variety \\
+                              \St & - & a variety that is not a linear shift of a staircase and yields a UGB
+                          \end{tabular}
+  
+                          \vspace{10mm}
+  
+                          * Recall UGB \(\implies\) DF and S \(\implies\) UGB
+  
+                          \vspace{10mm}
+
+                          ///;
 -- need to compute GBs to determine label
                 (for num from 0 to #allVs when num < #allVs
                    do (create2DLatexEntry(allVs, p, n, num, label)););
