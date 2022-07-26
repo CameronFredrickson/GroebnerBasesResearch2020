@@ -89,20 +89,6 @@ DiagonalFreeCheck = (V, n) -> (
                 ) return "Y";);
 
 
--- using hashtables StaircaseCheck2D determines whether or not the 2 dimensional affine variety V is a staircase or not
-
--- StaircaseCheck2D = (V, n) -> (
---
---                 checkTable := new MutableHashTable;
---                 maxKey1    := 0;
---
---                 (for m from 0 to #V when m < #V
---                   do (for j from 0 to n when j < m
---                         do (if i != j then (if HammingDistance(V#i, V#j, n) <= 1 then (diag = false; break;) else diag = true));
---                         if diag then return "N";);
---                 ) return true;);
-
-
 -- StaircaseCheck2D determines whether or not the 2 dimensional affine variety V is a staircase or not
 --                  starting with the point in V with the largest x value and then largest y value for points with that x value the function interates
 --                  through the points "underneath" it by subtracting 1 from the y value with each iteration and checking if this point is in V.
@@ -123,16 +109,32 @@ StaircaseCheck2D = (V, n) -> (
                 ); return true;);
 
 
--- If V is a linear shift of a staircase LinearShift2D finds the unshifted verision of V
+-- If V is a linear shift of a staircase LinearShift2D returns a tuple containing 3 elements, true or false if V is a linear shift of a staircase, the linear shift as a 
+-- string if true, and the unshifted verision of V if true
 
-LinearShift2D = (V, n) -> (
+LinearShift2D = (V, n, q) -> (
+-- find a linear shift to send a nonzero point in V to 0 then use scan to apply the linear shift to all the points, next put the shifted variety into StaircaseCheck2D
+                shiftedV := {};
+                nonzero := delete(toList (n:0), V);
+                b       := {};
+                shift   := "";
 --
-                shifted = {};
-);
+                (for m from 0 to #nonzero when m < #nonzero
+                  do (for a from 1 to q when a < q
+                        do (for i from 0 to n when i < n
+                              do (b = append(b, ((q - a*nonzero#m#i) % q)));
+--
+                            shiftedV = entries (matrix apply(V, j -> a*j + b)); -- applies the shift to all points in V
+                            shiftedV = applyTable(shiftedV, i -> i % q);        -- makes all entries nonnegative mod q, using mod(i, q) returns the class 
+                                                                                -- ZZ/q where 2 < 0 is true, however i % q returns class ZZ, where 2 < 0 is false
+--
+                            if StaircaseCheck2D(shiftedV, n) then return (true, "Φ(v) = " | a | "v + " | (toString b), shiftedV);
+                            b = {};))); 
+                 return (false, "not a linear shift of a staircase", {}););
 
 
 -- create2DLatexEntry returns the LaTeX to be copy pasted into a LaTeX file to label a variety as diagonal-free w/o a UGB, a linear shift of a staircase, 
---                    or not a linear shift of a staircase but has a UGBand creates a Tikz picture of the variety
+--                    or not a linear shift of a staircase but has a UGB and creates a Tikz picture of the variety
 
 -- create2DLatexEntry = (V, p, n, i, label) -> (
 --
@@ -143,21 +145,30 @@ LinearShift2D = (V, n) -> (
 -- );
 
 
--- creeate2DLatexFile writes the LaTeX to a file so that each variety in allVs has a visual representation and each variety is labeled as diagonal-free w/o a UGB, 
---                    a linear shift of a staircase, or n`ot a linear shift of a staircase w/ a UGB. The .tex file will be titled "p(char R)m(value of m).tex" if m is nonzero
---                    and no file name is given as an argument where m corresponds to the number of points in the varieties to be looked at if m is nonzero. 
---                    If m is equal to zero and no file name is given the file will be titled "p(char R).tex" i.e. so if char R returns 5, the corresponding .tex file 
---                    would be titled "p5.tex". The filter will allow the caller to only return the varieties with a specified property and the filter will be added to 
---                    the end of the file name if no file name is given. If filter == 0 then the LaTeX will not be filtered. If filter == 1
---                    then only the LaTeX corresponding to DF varieties w/o a UGB will be returned. If filter == 2 then only the LaTeX corresponding to varieties w/ UGBs
---                    are not linear shifts of staircases will be returned. 
+-- create2DLatexFile writes the LaTeX to a file so that each variety in allVs has a visual representation and each variety is labeled as diagonal-free w/o a UGB, 
+--                   a linear shift of a staircase, or n`ot a linear shift of a staircase w/ a UGB. The .tex file will be titled "p(char R)m(value of m).tex" if m is nonzero
+--                   and no file name is given as an argument where m corresponds to the number of points in the varieties to be looked at if m is nonzero. 
+--                   If m is equal to zero and no file name is given the file will be titled "p(char R).tex" i.e. so if char R returns 5, the corresponding .tex file 
+--                   would be titled "p5.tex". The filter will allow the caller to only return the varieties with a specified property and the filter will be added to 
+--                   the end of the file name if no file name is given. If filter == 0 then the LaTeX will not be filtered. If filter == 1
+--                   then only the LaTeX corresponding to DF varieties w/o a UGB will be returned. If filter == 2 then only the LaTeX corresponding to varieties w/ UGBs
+--                   are not linear shifts of staircases will be returned. 
 
 optionals = {FileName => 0, m => 0, filter => 0};
 
-createAll2DLatexEntries = optionals >> o -> (V, p, n) -> (
+create2DLatexFile = optionals >> o -> (allVs, p, n) -> (
 --
-                label := " ";
+                label := "   ";
+                entry := "";
 --
+                if FileName == 0 then (FileName = "p" | p; 
+                                       if m > 0 then FileName = FileName | "m" | m;
+                                       if filter == 0 then FileName = FileName | ".tex"
+                                       else if filter == 1 then FileName = FileName | "-DFnotUGB.tex"
+                                       else if filter == 2 then FileName = FileName | "-UGBnotStaircase.tex";);
+-- need to compute GBs to determine label
+                (for num from 0 to #allVs when num < #allVs
+                   do (create2DLatexEntry(allVs, p, n, num, label)););
 );
 
 
