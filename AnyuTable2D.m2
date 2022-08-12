@@ -139,20 +139,27 @@ LinearShift2D = (V, n, q) -> (
 --                    or not a linear shift of a staircase but has a UGB and creates a Tikz picture of the variety
 --                    Note: /// allows "\" to be treated as is and not as an ecsape character
 
--- create2DLatexEntry = (V, p, n, i, label, SMexponents) -> (
+optionals = {SMexponents => 0};
+
+create2DLatexEntry = method();
+
+create2DLatexEntry(List, ZZ, ZZ, String) := optionals >> o -> (V, p, i, label) -> (
 --
-                entry   := ///\begin{tabular}{ c c @ {\hskip 0.75 cm} c }/// | "\n\t" | (toString i) | ". & " | (toString label) | " & ";
-                Vcolor  := if i % 2 == 1 then "tetradicBlue" else "tetradicRed";
-                SMcolor := if i % 2 == 1 then "tetradicOrange" else "green";
+                entry   := ///\begin{tabular}{ c c @ {\hskip 0.75 cm} c }/// | "\n\t" | (toString i) | ". & " | (toString label) | " & " | (toString V#0#0) | " " | (toString V#0#1) | " ";
+                Vcolor  := if odd(i) then "tetradicBlue" else "tetradicRed";
+                SMcolor := if even(i) then "tetradicOrange" else "green";
 --
-                (for m from 0 to #V when m < #V
-                  do ());
+                (for m from 1 to #V when m < #V
+                  do (entry = entry | ///\\\n &    & /// | (toString V#m#0) | " " | (toString V#m#1) | " ";));
+--
                 entry = entry | "\n" | ///\end{tabular} \hspace{0.25cm} \begin{tikzpicture}[baseline=(current bounding box.center), roundnode/.style={circle, draw=/// | Vcolor | "!60, fill=" | Vcolor | "!5, very thick, minimum size=5mm}, scale=1.2]" | "\n % Lines \n" | ///\draw (0,0) grid (/// | (toString p) | ", " | (toString p) | ");\n\n % Nodes\n";
 --
                 (for m from 0 to #V when m < #V
-                  do ());
+                  do (entry = entry | ///\node[roundnode] at (/// | (toString V#m#0) | ", " | (toString V#m#1) | ") {};\n")));
 --
-                return entry;);
+                entry = entry | ///\end{tikzpicture}///;
+                if SMexponents == 0 then return (entry | ///\n\n\vspace{10mm}\n\n///);
+);
 
 
 -- create2DLatexFile writes the LaTeX to a file so that each variety in allVs has a visual representation and each variety is labeled as diagonal-free w/o a UGB, 
