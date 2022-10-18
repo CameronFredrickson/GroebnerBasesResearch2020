@@ -140,8 +140,8 @@ LinearShift2D = (V, n, q) -> (
 --                    Note: /// allows "\" to be treated as is and not as an ecsape character
 
 create2DLatexEntry = method(Options => {SMexponents => 0});
-
-create2DLatexEntry(List, ZZ, ZZ, String) := o -> (V, p, i, label) -> (
+ 
+create2DLatexEntry(List, ZZ, ZZ, String) := o -> (V, p, i, label) -> (  -- something is fishy with 'o-> ', 'o.SMexponents' does not work
 --
                 entry   := ///\begin{tabular}{ c c @ {\hskip 0.75 cm} c }/// | "\n\t" | (toString i) | ". & " | (toString label) | " & " | (toString V#0#0) | " " | (toString V#0#1) | " ";
                 Vcolor  := if odd(i) then "tetradicBlue" else "tetradicRed";
