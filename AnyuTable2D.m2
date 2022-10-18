@@ -143,7 +143,7 @@ create2DLatexEntry = method(Options => {SMexponents => 0});
  
 create2DLatexEntry(List, ZZ, ZZ, String) := o -> (V, p, i, label) -> (  -- something is fishy with 'o-> ', 'o.SMexponents' does not work
 --
-                entry   := ///\begin{tabular}{ c c @ {\hskip 0.75 cm} c }/// | "\n\t" | (toString i) | ". & " | (toString label) | " & " | (toString V#0#0) | " " | (toString V#0#1) | " ";
+                entry   := ///\begin{tabular}{ c c @ {\hskip 0.75 cm} c }/// | "\n\t" | (toString i) | ". & " | (toString label) | " & " | (toString V#0#0) | " " | (toString V#0#1) | " ";  -- /// allows "\" to be treated as is and not as an ecsape character
                 Vcolor  := if odd(i) then "tetradicBlue" else "tetradicRed";
                 SMcolor := if even(i) then "tetradicOrange" else "green";
 --
@@ -153,10 +153,10 @@ create2DLatexEntry(List, ZZ, ZZ, String) := o -> (V, p, i, label) -> (  -- somet
                 entry = entry | "\n" | ///\end{tabular} \hspace{0.25cm} \begin{tikzpicture}[baseline=(current bounding box.center), roundnode/.style={circle, draw=/// | Vcolor | "!60, fill=" | Vcolor | "!5, very thick, minimum size=5mm}, scale=1.2]" | "\n % Lines \n" | ///\draw (0,0) grid (/// | (toString p) | ", " | (toString p) | ");\n\n % Nodes\n";
 --
                 (for m from 0 to #V when m < #V
-                  do (entry = entry | ///\node[roundnode] at (/// | (toString V#m#0) | ", " | (toString V#m#1) | ") {};\n")));
+                  do (entry = entry | ///\node[roundnode] at (/// | (toString V#m#0) | ", " | (toString V#m#1) | ") {};\n"));
 --
                 entry = (toString entry) | ///\end{tikzpicture}///;  -- did not compile with "entry | ///\end{tikzpicture}///" needed "(toString entry) | ///\end{tikzpicture}///";
-                if (options create2DLatexEntry).SMexponents == 0 then return (entry | ///\n\n\vspace{10mm}\n\n///);
+                if (options create2DLatexEntry).SMexponents == 0 then (entry | ///\n\n\vspace{10mm}\n\n///) else 1;
 );
 
 
@@ -182,7 +182,7 @@ create2DLatexFile = optionals >> o -> (allVs, p, n) -> (
                                        else if filter == 1 then FileName = FileName | "-DFnotUGB.tex"
                                        else if filter == 2 then FileName = FileName | "-UGBnotStaircase.tex";);
 --
-                fileString  := ///\documentclass[12 pt]{article} -- /// allows "\" to be treated as is and not as an ecsape character  
+                fileString  := ///\documentclass[12 pt]{article} 
   
                           \usepackage[utf8]{inputenc}
                           \usepackage{amsfonts,amssymb,amsmath}
