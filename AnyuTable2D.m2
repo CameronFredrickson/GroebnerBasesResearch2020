@@ -1,4 +1,4 @@
--- Code to create the LaTeX needed to create a visual representation of any 2D variety and label it as a variety that is diagonal-free w/o a UGB, 
+-- Code to create the LaTeX needed to create a visual representation of any 2D variety from a finite field and label it as a variety that is diagonal-free w/o a UGB, 
 -- a linear shift of a staircase, or not a linear shift of a staircase but has a UGB
 
 
@@ -139,11 +139,9 @@ LinearShift2D = (V, n, q) -> (
 --                    or not a linear shift of a staircase but has a UGB and creates a Tikz picture of the variety
 --                    Note: /// allows "\" to be treated as is and not as an ecsape character
 
-optionals = {SMexponents => 0};
+create2DLatexEntry = method(Options => {SMexponents => 0});
 
-create2DLatexEntry = method();
-
-create2DLatexEntry(List, ZZ, ZZ, String) := optionals >> o -> (V, p, i, label) -> (
+create2DLatexEntry(List, ZZ, ZZ, String) := o -> (V, p, i, label) -> (
 --
                 entry   := ///\begin{tabular}{ c c @ {\hskip 0.75 cm} c }/// | "\n\t" | (toString i) | ". & " | (toString label) | " & " | (toString V#0#0) | " " | (toString V#0#1) | " ";
                 Vcolor  := if odd(i) then "tetradicBlue" else "tetradicRed";
@@ -157,8 +155,8 @@ create2DLatexEntry(List, ZZ, ZZ, String) := optionals >> o -> (V, p, i, label) -
                 (for m from 0 to #V when m < #V
                   do (entry = entry | ///\node[roundnode] at (/// | (toString V#m#0) | ", " | (toString V#m#1) | ") {};\n")));
 --
-                entry = entry | ///\end{tikzpicture}///;
-                if SMexponents == 0 then return (entry | ///\n\n\vspace{10mm}\n\n///);
+                entry = (toString entry) | ///\end{tikzpicture}///;  -- did not compile with "entry | ///\end{tikzpicture}///" needed "(toString entry) | ///\end{tikzpicture}///";
+                if (options create2DLatexEntry).SMexponents == 0 then return (entry | ///\n\n\vspace{10mm}\n\n///);
 );
 
 
