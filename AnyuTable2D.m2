@@ -115,14 +115,12 @@ StaircaseCheck2D = (V, n) -> (
 
 LinearShift2D = (V, n, q) -> (
                 shiftedV := {};
-                nonzero := delete(toList (n:0), V);
                 b       := {};
-                shift   := "";
 --
-                (for m from 0 to #nonzero when m < #nonzero
+                (for m from 0 to #V when m < #V
                   do (for a from 1 to q when a < q
                         do (for i from 0 to n when i < n
-                              do (b = append(b, ((q - a*nonzero#m#i) % q)));
+                              do (b = append(b, ((q - a*V#m#i) % q)));
 --
                             shiftedV = entries (matrix apply(V, j -> a*j + b)); -- applies the shift to all points in V
                             shiftedV = applyTable(shiftedV, i -> i % q);        -- makes all entries nonnegative mod q, using mod(i, q) returns the class 
@@ -343,6 +341,8 @@ displayTable = optionals >> o -> (allV, n, q) -> (
 
                          type := "NA "; 
                          (isStaircase, message, unshifted) := LinearShift2D(currentV, n, q);
+
+                         print (isStaircase, message, unshifted);
 
                          (if isStaircase == true then type = "S  "
                           else if #currentGBs == 1 then type = "UGB"
