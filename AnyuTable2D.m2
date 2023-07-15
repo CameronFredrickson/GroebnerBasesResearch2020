@@ -318,7 +318,7 @@ findMaxVstrLen = allV -> (
 
 optionals = {toFile => 0, fileName => "table.txt"};
 
-displayTable = optionals >> o -> allV -> (
+displayTable = optionals >> o -> (allV, n, q) -> (
 --              
                TableNet := "";
                maxVlen := findMaxVstrLen allV;
@@ -338,14 +338,22 @@ displayTable = optionals >> o -> allV -> (
                          GBsStr := toString currentGBs#0;
 
                          currentLTs := allLT#i;
-                         LTsStr := toString currentLTs#0;   
+                         LTsStr := toString currentLTs#0;
+
+
+                         type := "NA "; 
+                         (isStaircase, message, unshifted) := LinearShift2D(currentV, n, q);
+
+                         (if isStaircase == true then type = "S  "
+                          else if #currentGBs == 1 then type = "UGB"
+                          else if DiagonalFreeCheck(currentV, n) == "Y" then type = "DF ");
 --
                          (for k from 1 to #currentGBs when k < #currentGBs
                              do (MBsStr = MBsStr || toString currentMBs#k;
                                  GBsStr = GBsStr || toString currentGBs#k;
                                  LTsStr = LTsStr || toString currentLTs#k;));
 --
-                         colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | "type" | "   " | PtsStr | "   " | MBsStr);                     -- log_10(i + 1) is to remove the number of spaces corresponding to the number of the digits of the row number
+                         colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);                     -- log_10(i + 1) is to remove the number of spaces corresponding to the number of the digits of the row number
                          )
                 ); TableNet = colHeaders; -- first ';' on line 141 must be there or 'null SPACE null' error
                   (if o.toFile == 1 then
