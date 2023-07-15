@@ -322,9 +322,7 @@ displayTable = optionals >> o -> allV -> (
 --              
                TableNet := "";
                maxVlen := findMaxVstrLen allV;
-               colVMB := (createRepeatStr(" ", 10)) | "V" | (createRepeatStr(" ", (maxVlen + 2))) | "MBs";
-               colLT := "LTs";
-               colGB := "GBs";
+               colHeaders := "      Type    "| (createRepeatStr(" ", 10)) | "V" | (createRepeatStr(" ", (maxVlen + 2))) | "MBs";
                (allGB, allMB, allLT) := createTableElements allV;
                fileDescriptor := 0;
 --
@@ -347,15 +345,14 @@ displayTable = optionals >> o -> allV -> (
                                  GBsStr = GBsStr || toString currentGBs#k;
                                  LTsStr = LTsStr || toString currentLTs#k;));
 --
-                         colVMB = colVMB || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | toString (#currentMBs) | "   " | PtsStr | "   " | MBsStr);                     -- log_10(i + 1) is to remove the number of spaces corresponding to the number of the digits of the row number
-                         colLT = colLT || "\n" || LTsStr;
-                         colGB = colGB || "\n" || GBsStr;)
-                         ); TableNet = colVMB | "   " | colLT | "   " | colGB; -- first ';' on line 141 must be there or 'null SPACE null' error
-                         (if o.toFile == 1 then
-                              (fileDescriptor = openOut o.fileName;
-                               fileDescriptor << TableNet;
-                               close fileDescriptor;)
-                            else print TableNet;))
+                         colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | "type" | "   " | PtsStr | "   " | MBsStr);                     -- log_10(i + 1) is to remove the number of spaces corresponding to the number of the digits of the row number
+                         )
+                ); TableNet = colHeaders; -- first ';' on line 141 must be there or 'null SPACE null' error
+                  (if o.toFile == 1 then
+                      (fileDescriptor = openOut o.fileName;
+                       fileDescriptor << TableNet;
+                       close fileDescriptor;)
+                    else print TableNet;))
 
 
 -- How to retrieve and remove files:
