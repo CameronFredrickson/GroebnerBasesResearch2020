@@ -45,9 +45,7 @@ createPoints = (n, q) -> (
 -- m  is an optional parameter to force all computed Vs to have m points
 -- Note 3 <= |V| because a general formula is known for the number of RGBs of I(V) where V has exactly 2 points in n dimensions
 
-optionals = {m => 0};
-
-createAllVs = optionals >> o -> (n , q) -> (
+createAllVs = {m => 0} >> o -> (n , q) -> (
 --
                 allVs := {};
 --
@@ -141,7 +139,7 @@ LinearShift2D = (V, n, q) -> (
 
 create2DLatexEntry = method(Options => {SMexponents => 0});
  
-create2DLatexEntry(List, ZZ, ZZ, String) := o -> (V, p, i, label) -> (  -- something is fishy with 'o-> ', 'o.SMexponents' does not work
+create2DLatexEntry(List, ZZ, ZZ, String) := (V, p, i, label) -> (  -- something is fishy with 'o -> ', 'o.SMexponents' does not work
 --
                 entry   := ///\begin{tabular}{ c c @ {\hskip 0.75 cm} c }/// | "\n\t" | (toString i) | ". & " | (toString label) | " & " | (toString V#0#0) | " " | (toString V#0#1) | " ";  -- /// allows "\" to be treated as is and not as an ecsape character
                 Vcolor  := if odd(i) then "tetradicBlue" else "tetradicRed";
@@ -156,7 +154,7 @@ create2DLatexEntry(List, ZZ, ZZ, String) := o -> (V, p, i, label) -> (  -- somet
                   do (entry = entry | ///\node[roundnode] at (/// | (toString V#m#0) | ", " | (toString V#m#1) | ") {};\n"));
 --
                 entry = (toString entry) | ///\end{tikzpicture}///;  -- did not compile with "entry | ///\end{tikzpicture}///" needed "(toString entry) | ///\end{tikzpicture}///";
-                if (options create2DLatexEntry).SMexponents == 0 then (entry | ///\n\n\vspace{10mm}\n\n///) else 1;
+                if (options create2DLatexEntry).SMexponents == 0 then (return entry | ///\n\n\vspace{10mm}\n\n///;) else (return "still need to write code for the SMs";);  -- if SMexponents == 1 then create entry for SMs
 );
 
 
@@ -169,9 +167,7 @@ create2DLatexEntry(List, ZZ, ZZ, String) := o -> (V, p, i, label) -> (  -- somet
 --                   then only the LaTeX corresponding to DF varieties w/o a UGB will be returned. If filter == 2 then only the LaTeX corresponding to varieties w/ UGBs
 --                   are not linear shifts of staircases will be returned. 
 
-optionals = {FileName => 0, m => 0, filter => 0};
-
-create2DLatexFile = optionals >> o -> (allVs, p, n) -> (
+create2DLatexFile = {FileName => 0, a => 0, filter => 0} >> o -> (allVs, p, n) -> (
 --
                 label       := "   ";
                 entry       := "";
