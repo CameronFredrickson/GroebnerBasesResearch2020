@@ -98,20 +98,21 @@ StaircaseCheck2D = (V, n) -> (
 --
                 toCheck := rsort(V);
                 m       :=0;
-                minY    := toCheck#0#1;
-                maxX    := toCheck#0#0;
+                minY    := -1;  -- forces minY to be properly intialized and run through the loop in all subsequent interations without initializing outside the loop
+                lastX   := 0;
                 flag    := 0;
 --
                 (while m < #toCheck
                   do (currentPt := toCheck#m; 
                       if currentPt#1 < minY then return false else minY = currentPt#1;
-                      if currentPt#0 > maxX then return false else maxX = currentPt#0;
+                      lastX = currentPt#0;
 --
                       for j from 1 to currentPt#1 when j <= currentPt#1
                         do (flag = 1;
-                            if toCheck#(m + 1) != currentPt - {0, j} then return false else m = m + 1;);
-                      if flag == 0 then m = m + 1;
-                      flag = 0;);
+                            if toCheck#(m + 1) != currentPt - {0, j} then return false else m = m + 1;
+                           );
+                      if flag == 0 then m = m + 1 else flag = 0;
+                      if toCheck#m#0 != lastX - 1 then return false;);
                 ); return true;);
 
 
