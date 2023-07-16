@@ -360,15 +360,15 @@ displayTable = optionals >> o -> (allV, n, q) -> (
                                  GBsStr = GBsStr || toString currentGBs#k;
                                  LTsStr = LTsStr || toString currentLTs#k;));
 
-                          if filter == 0 then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr); -- log_10(i + 1) is to remove the number of spaces corresponding to the number of the digits of the row number
+                          if o.filter == 0 then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr); -- log_10(i + 1) is to remove the number of spaces corresponding to the number of the digits of the row number
 --                          
-                          if filter == 1 and type == "S  " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
+                          if o.filter == 1 and type == "S  " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
 --
-                          if filter == 2 and type == "S  " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
+                          if o.filter == 2 and type == "S  " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
 --
-                          if filter == 3 and type == "DF " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
+                          if o.filter == 3 and type == "DF " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
 --
-                          if filter == 4 and type == "NA " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
+                          if o.filter == 4 and type == "NA " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
                          )
                 ); TableNet = colHeaders; -- first ';' on line 365 must be there or 'null SPACE null' error
                   (if o.toFile == 1 then
