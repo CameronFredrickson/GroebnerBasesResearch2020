@@ -319,9 +319,9 @@ findMaxVstrLen = allV -> (
                  return maxLen;);
 
 
--- displayTable prints/(pipes to file) elements from getTableElements in a table format
+-- displayTable prints/(pipes to file) elements from getTableElements in a table format. The optional filter parameter can specify whether or not you want to look at '1' just staircases, '2' just UGBs, '3' strictly diagonal-free variaties, '4' not applicable
 
-optionals = {toFile => 0, fileName => "table.txt"};
+optionals = {toFile => 0, fileName => "table.txt", filter => 0};
 
 displayTable = optionals >> o -> (allV, n, q) -> (
 --              
@@ -349,7 +349,7 @@ displayTable = optionals >> o -> (allV, n, q) -> (
                          type := "NA "; 
                          (isStaircase, message, unshifted) := LinearShift2D(currentV, n, q);
 
-                         print (isStaircase, message, unshifted);
+                         print ((toString(i + 1) | ". "), isStaircase, message, unshifted);
 
                          (if isStaircase == true then type = "S  "
                           else if #currentGBs == 1 then type = "UGB"
@@ -359,10 +359,18 @@ displayTable = optionals >> o -> (allV, n, q) -> (
                              do (MBsStr = MBsStr || toString currentMBs#k;
                                  GBsStr = GBsStr || toString currentGBs#k;
                                  LTsStr = LTsStr || toString currentLTs#k;));
+
+                          if filter == 0 then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr); -- log_10(i + 1) is to remove the number of spaces corresponding to the number of the digits of the row number
+--                          
+                          if filter == 1 and type == "S  " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
 --
-                         colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);                     -- log_10(i + 1) is to remove the number of spaces corresponding to the number of the digits of the row number
+                          if filter == 2 and type == "S  " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
+--
+                          if filter == 3 and type == "DF " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
+--
+                          if filter == 4 and type == "NA " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
                          )
-                ); TableNet = colHeaders; -- first ';' on line 141 must be there or 'null SPACE null' error
+                ); TableNet = colHeaders; -- first ';' on line 365 must be there or 'null SPACE null' error
                   (if o.toFile == 1 then
                       (fileDescriptor = openOut o.fileName;
                        fileDescriptor << TableNet;
