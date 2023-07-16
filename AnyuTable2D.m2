@@ -100,19 +100,19 @@ StaircaseCheck2D = (V, n) -> (
                 m       := 0;
                 minY    := -1;  -- forces minY to be properly intialized and run through the loop in all subsequent interations without initializing outside the loop
                 lastX   := 0;
-                flag    := 0;
 --
+                print toCheck;
                 (while m < (#toCheck - 1)
                   do (currentPt := toCheck#m; 
                       if currentPt#1 < minY then return false else minY = currentPt#1;
                       lastX = currentPt#0;
+                      print ("before for: " | (toString m));
 --
                       for j from 1 to currentPt#1 when j <= currentPt#1
-                        do (flag = 1;
-                            if toCheck#(m + 1) != currentPt - {0, j} then return false else m = m + 1;
-                            );
-                      if flag == 0 then m = m + 1 else flag = 0;
-                      if lastX > 0 and toCheck#m#0 != lastX - 1 then return false;);
+                        do (if toCheck#(m + 1) != currentPt - {0, j} then return false else m = m + 1;);
+                      m = m + 1;
+                      if lastX > 0 and toCheck#m#0 != lastX - 1 then return false;
+                      );
                 ); return true;);
 
 
