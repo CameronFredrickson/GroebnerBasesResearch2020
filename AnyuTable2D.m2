@@ -364,7 +364,7 @@ displayTable = optionals >> o -> (allV, n, q) -> (
 --                          
                           if o.filter == 1 and type == "S  " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
 --
-                          if o.filter == 2 and type == "S  " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
+                          if o.filter == 2 and type == "UGB" then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
 --
                           if o.filter == 3 and type == "DF " then colHeaders = colHeaders || "\n" || ((toString (i+1)) | "." | createRepeatStr(" ", (4 - floor(log_10(i + 1)))) | type | "   " | PtsStr | "   " | MBsStr);
 --
