@@ -121,12 +121,12 @@ StaircaseCheck2D = (V, n) -> (
 
 LinearShift2D = (V, n, q) -> (
                 shiftedV := {};
-                b       := {};
+                b        := {};
 --
                 (for m from 0 to #V when m < #V
                   do (for a from 1 to q when a < q
                         do (for i from 0 to n when i < n
-                              do (b = append(b, ((q - a*V#m#i) % q)));
+                              do (b = append(b, ((q - a*V#m#i) % q))); -- creates the additive inverse of the current point V#m to shift it to the orgin
 --
                             shiftedV = entries (matrix apply(V, j -> a*j + b)); -- applies the shift to all points in V
                             shiftedV = applyTable(shiftedV, i -> i % q);        -- makes all entries nonnegative mod q, using mod(i, q) returns the class 
